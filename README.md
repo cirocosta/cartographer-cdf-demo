@@ -94,7 +94,7 @@ spec:
       url: https://github.com/carto-run/hello-world
       revision: 979495ac3ce27d83d48de7d8db1cab46fa77388f
 status:
-	latestImage: index.docker.io/projectcartographer/hello-world@sha256:27452d42b
+  latestImage: index.docker.io/projectcartographer/hello-world@sha256:27452d42b
 ```
 
 It'll under the hood, like any other Kubernetes controller, relentlessly try to
