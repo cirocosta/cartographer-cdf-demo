@@ -125,7 +125,7 @@ source code, `kpack` would take care of building a fresh new image for us.
 ```
 
 
-But, that said, we need a way of updating that exact field
+But, that said, we still need to figure out a way of updating that exact field
 (`spec.source.git.revision`) with the revisions we want.
 
 i.e., it'd be great if we could somehow express:

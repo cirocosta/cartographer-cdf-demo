@@ -1,9 +1,15 @@
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: GitRepository
 metadata:
   name: hello-world
 spec:
+  #! git repository to keep track of commits that are made to it
+  #!
   url: https://github.com/carto-run/hello-world
   ref:
     branch: main
+
+  #! check for new commits every min
+  #!
   interval: 1m0s
