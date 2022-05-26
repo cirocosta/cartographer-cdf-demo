@@ -1,0 +1,30 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ootb-supply-chain-source-to-url-workload
+rules:
+  - apiGroups: [carto.run]
+    resources: [runnables]
+    verbs: ['*']
+  - apiGroups: [source.toolkit.fluxcd.io]
+    resources: [gitrepositories]
+    verbs: ['*']
+  - apiGroups: [tekton.dev]
+    resources: [pipelines,tasks,pipelineruns,taskruns]
+    verbs: ['*']
+  - apiGroups: [kpack.io]
+    resources: [images]
+    verbs: ['*']
+  - apiGroups: [""]
+    resources: [pods]
+    verbs: ['list']
+  - apiGroups: [kappctrl.k14s.io]
+    resources: [apps]
+    verbs: ['*']
+  - apiGroups: [serving.knative.dev]
+    resources: [services]
+    verbs: ['*']
+  - apiGroups: [""]
+    resources: [configmaps]
+    verbs: ['*']

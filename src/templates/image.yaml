@@ -1,0 +1,66 @@
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterImageTemplate
+metadata:
+  name: image
+spec:
+  params:
+    - name: service_account
+      default: default
+    - name: cluster_builder
+      default: default
+    - name: registry
+      default: {}
+
+  imagePath: .status.latestImage
+
+  ytt: |
+    #@ load("@ytt:data", "data")
+
+    #@ def merge_labels(fixed_values):
+    #@   labels = {}
+    #@   if hasattr(data.values.workload.metadata, "labels"):
+    #@     labels.update(data.values.workload.metadata.labels)
+    #@   end
+    #@   labels.update(fixed_values)
+    #@   return labels
+    #@ end
+
+
+    #@ def service_account_name():
+    #@   if hasattr(data.values.workload.spec, "serviceAccountName"):
+    #@     return data.values.workload.spec.serviceAccountName
+    #@   end
+    #@   return data.values.params.service_account
+    #@ end
+
+    #@ def image_name():
+    #@   return "/".join([
+    #@    data.values.params.registry.server,
+    #@    data.values.params.registry.repository,
+    #@    "-".join([
+    #@      data.values.workload.metadata.name,
+    #@      data.values.workload.metadata.namespace,
+    #@    ])
+    #@   ])
+    #@ end
+
+    ---
+    apiVersion: kpack.io/v1alpha2
+    kind: Image
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "build" })
+    spec:
+      tag: #@ image_name()
+      serviceAccountName: #@ service_account_name()
+      builder:
+        kind: ClusterBuilder
+        name: #@ data.values.params.cluster_builder
+      source:
+        blob:
+          url: #@ data.values.source.url
+      build:
+        env:
+        - name: BP_OCI_SOURCE
+          value: #@ data.values.source.revision

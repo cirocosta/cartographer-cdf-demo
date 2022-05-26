@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: GitRepository
+metadata:
+  name: hello-world
+spec:
+  url: https://github.com/carto-run/hello-world
+  ref:
+    branch: main
+  interval: 1m0s

@@ -1,0 +1,40 @@
+---
+apiVersion: carto.run/v1alpha1
+kind: Workload
+metadata:
+  name: app
+  labels:
+    app.kubernetes.io/part-of: app
+    apps.tanzu.vmware.com/workload-type: web
+spec:
+  serviceAccountName: app
+
+  source:
+    git:
+      ref:
+        branch: main
+      url: https://github.com/carto-run/hello-world
+
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: default
+spec:
+  params:
+    - name: blob-url
+    - name: blob-revision
+  steps:
+    - name: test
+      image: golang
+      command:
+        - bash
+        - -cxe
+        - |-
+          set -o pipefail
+
+          echo $(params.blob-revision)
+
+          cd `mktemp -d`
+          curl -SL $(params.blob-url) | tar xvzf -
+          go test -v ./...

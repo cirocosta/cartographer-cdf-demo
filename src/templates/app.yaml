@@ -1,0 +1,83 @@
+---
+apiVersion: carto.run/v1alpha1
+kind: ClusterTemplate
+metadata:
+  name: app
+spec:
+  params:
+    - name: service_account
+      default: default
+
+  ytt: |
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:yaml", "yaml")
+
+    #@ def merge_labels(fixed_values):
+    #@   labels = {}
+    #@   if hasattr(data.values.workload.metadata, "labels"):
+    #@     labels.update(data.values.workload.metadata.labels)
+    #@   end
+    #@   labels.update(fixed_values)
+    #@   return labels
+    #@ end
+
+    #@ def service_account_name():
+    #@   if hasattr(data.values.workload.spec, "serviceAccountName"):
+    #@     return data.values.workload.spec.serviceAccountName
+    #@   end
+    #@   return data.values.params.service_account
+    #@ end
+
+    #@ def/end knative_service():
+    ---
+    apiVersion: serving.knative.dev/v1
+    kind: Service
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "run" })
+    spec:
+      template:
+        metadata:
+          labels: #@ merge_labels({ "app.kubernetes.io/component": "run" })
+        spec:
+          serviceAccountName: #@ data.values.params.service_account
+          containers:
+            - name: workload
+              image: #@ data.values.image
+
+
+    #@ def/end kapp_config():
+    ---
+    apiVersion: kapp.k14s.io/v1alpha1
+    kind: Config
+    rebaseRules:
+      - path: [metadata, annotations, serving.knative.dev/creator]
+        type: copy
+        sources: [new, existing]
+        resourceMatchers: &matchers
+          - apiVersionKindMatcher: {apiVersion: serving.knative.dev/v1, kind: Service}
+      - path: [metadata, annotations, serving.knative.dev/lastModifier]
+        type: copy
+        sources: [new, existing]
+        resourceMatchers: *matchers
+
+
+    ---
+    apiVersion: kappctrl.k14s.io/v1alpha1
+    kind: App
+    metadata:
+      name: #@ data.values.workload.metadata.name
+      labels: #@ merge_labels({ "app.kubernetes.io/component": "deploy" })
+    spec:
+      syncPeriod: 5m0s
+      serviceAccountName: #@ service_account_name()
+      fetch:
+        - inline:
+            paths:
+              service.yml: #@ yaml.encode(knative_service())
+              kapp-config.yml: #@ yaml.encode(kapp_config())
+      template:
+        - ytt: {}
+        - kbld: {}
+      deploy:
+        - kapp: {}

@@ -1,0 +1,21 @@
+#@data/values
+---
+# name of the service account to use by default in any children resources
+# created by the controller.
+#
+service_account: default
+
+# name of the clusterbuilder to use by default in any kpack image objects.
+#
+cluster_builder: default
+
+# name of the git implementation to use in gitrepository objects (acceptable
+# values: libgit2, go-git).
+#
+git_implementation: go-git
+
+# where to push container images built by kpack to.
+#
+registry:
+  server:
+  repository:
